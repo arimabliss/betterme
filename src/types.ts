@@ -99,6 +99,8 @@ export interface AppState {
     dailyStudyGoalMinutes: number;
     userName: string;
     focusSound: string;
+    passcodeHash?: string;
+    isPasscodeRequired?: boolean;
   };
   lastActiveDate: string;
 }

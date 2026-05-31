@@ -32,6 +32,9 @@ import { PlannerSection } from './components/PlannerSection';
 import { GrowthSection } from './components/GrowthSection';
 import { AnalyticsSection } from './components/AnalyticsSection';
 import { SettingsSection } from './components/SettingsSection';
+import { PasscodeLockScreen } from './components/PasscodeLockScreen';
+import { formatLocalDate } from './utils/date';
+import { Lock } from 'lucide-react';
 
 const STORAGE_KEY = 'betterme_universe_growth_ledger';
 
@@ -72,8 +75,11 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<string>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Date coordinate anchor
-  const todayStr = new Date().toISOString().split('T')[0];
+  // Timezone-localized Date coordinate anchor
+  const todayStr = formatLocalDate();
+
+  // Screenlock for passcode integration
+  const [isScreenLocked, setIsScreenLocked] = useState(false);
 
   // Initialize and load from local storage
   useEffect(() => {
@@ -91,6 +97,11 @@ export default function App() {
           }
         };
         setState(merged);
+        
+        // Handle passcode locking on initial application mount
+        if (merged.settings.isPasscodeRequired && merged.settings.passcodeHash) {
+          setIsScreenLocked(true);
+        }
         
         // Apply theme color modes
         if (merged.settings.theme === 'light') {
@@ -540,7 +551,36 @@ export default function App() {
   const overallStreak = navItems.length > 0 ? state.detoxDays || 0 : 0;
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row relative">
+    <div className="min-h-screen flex flex-col md:flex-row relative z-10">
+      {isScreenLocked && state.settings.isPasscodeRequired && state.settings.passcodeHash && (
+        <PasscodeLockScreen
+          passcodeHash={state.settings.passcodeHash}
+          userName={state.settings.userName}
+          onUnlock={() => setIsScreenLocked(false)}
+        />
+      )}
+      {/* Premium Hardware-Accelerated Glass Gradient Background */}
+      <div className="fixed inset-0 -z-30 pointer-events-none overflow-hidden select-none">
+        {state.settings.theme === 'light' ? (
+          <div className="absolute inset-0 bg-[#f7f6fa] transition-all duration-700">
+            {/* Soft pink glow top-left */}
+            <div className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] max-w-[650px] max-h-[650px] rounded-full bg-pink-400/6 blur-[100px] md:blur-[120px]" />
+            {/* Soft purple glow bottom-right */}
+            <div className="absolute -bottom-[10%] -right-[10%] w-[70vw] h-[70vw] max-w-[750px] max-h-[750px] rounded-full bg-purple-400/8 blur-[110px] md:blur-[130px]" />
+            {/* Soft indigo glow center */}
+            <div className="absolute top-[30%] left-[30%] w-[50vw] h-[50vw] max-w-[550px] max-h-[550px] rounded-full bg-indigo-400/5 blur-[100px] md:blur-[115px]" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-[#030308] transition-all duration-700 font-sans">
+            {/* Soft pink/rose glass glow top-left */}
+            <div className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] max-w-[650px] max-h-[650px] rounded-full bg-pink-500/5 blur-[100px] md:blur-[120px]" />
+            {/* Soft purple glass glow bottom-right */}
+            <div className="absolute -bottom-[10%] -right-[10%] w-[70vw] h-[70vw] max-w-[750px] max-h-[750px] rounded-full bg-purple-500/6 blur-[110px] md:blur-[130px]" />
+            {/* Soft indigo glass glow center */}
+            <div className="absolute top-[30%] left-[30%] w-[50vw] h-[50vw] max-w-[550px] max-h-[550px] rounded-full bg-indigo-500/4 blur-[100px] md:blur-[115px]" />
+          </div>
+        )}
+      </div>
       
       {/* Sidebar navigation styled in midnight black glass */}
       <aside className="hidden md:flex flex-col w-64 bg-zinc-950/75 border-r border-zinc-900/85 backdrop-blur-2xl p-5 sticky top-0 h-screen z-40 justify-between select-none">
@@ -607,6 +647,24 @@ export default function App() {
             )}
             Theme: {state.settings.theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </button>
+          
+          {state.settings.isPasscodeRequired && state.settings.passcodeHash && (
+            <button
+              onClick={() => setIsScreenLocked(true)}
+              className="w-full mt-2 py-2 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 hover:border-pink-500/35 text-[10px] font-bold text-pink-400 hover:text-pink-300 uppercase transition-all flex items-center justify-center gap-1 leading-none rounded-xl"
+              title="Lock active terminal log"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              Lock Terminal
+            </button>
+          )}
+
+          <div className="mt-4 pt-3 border-t border-zinc-900 pb-1 text-center font-sans">
+            <p className="text-[9px] text-zinc-650 font-medium leading-relaxed uppercase tracking-wider">
+              © 2026 BetterMe<br/>
+              all rights reserved by <span className="text-zinc-500 font-bold block mt-0.5">arima • bliss devs</span>
+            </p>
+          </div>
         </div>
       </aside>
 
@@ -763,6 +821,13 @@ export default function App() {
               onResetAllData={handleResetAllData}
             />
           )}
+
+          {/* User-requested copyright and branding footer */}
+          <footer className="mt-12 pt-6 border-t border-zinc-900/60 text-center select-none">
+            <p className="text-[10px] font-mono font-bold text-zinc-600 uppercase tracking-widest">
+              all rights reserved by arima • bliss devs
+            </p>
+          </footer>
         </div>
       </main>
 

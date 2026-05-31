@@ -19,6 +19,7 @@ import {
   LayoutDashboard
 } from 'lucide-react';
 import { AppState, Habit, HabitCompletion } from '../types';
+import { formatLocalDate } from '../utils/date';
 
 interface UnifiedDashboardProps {
   state: AppState;
@@ -110,7 +111,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ state, onSet
     for (let i = 0; i < 365; i++) {
       const checkDate = new Date(d);
       checkDate.setDate(d.getDate() - i);
-      const dateStr = checkDate.toISOString().split('T')[0];
+      const dateStr = formatLocalDate(checkDate);
       
       let activeOnDay = false;
       
@@ -166,7 +167,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ state, onSet
     for (let i = 0; i < 7; i++) {
       const current = new Date(d);
       current.setDate(d.getDate() + i);
-      const cStr = current.toISOString().split('T')[0];
+      const cStr = formatLocalDate(current);
       const completed = Object.keys(state.habits).filter(k => k.startsWith(cStr)).length;
       data.push({
         label: weekdays[i],
@@ -192,7 +193,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({ state, onSet
     for (let i = 0; i < 28; i++) {
       const curr = new Date(d);
       curr.setDate(d.getDate() + i);
-      const cStr = curr.toISOString().split('T')[0];
+      const cStr = formatLocalDate(curr);
       
       const habitCount = Object.keys(state.habits).filter(k => k.startsWith(cStr)).length;
       const gymWorkout = state.gymWorkouts.find(w => w.date === cStr);

@@ -15,9 +15,11 @@ import {
   Calendar, 
   Clock, 
   Sliders,
-  CheckCircle2
+  CheckCircle2,
+  Volume2
 } from 'lucide-react';
 import { StudySession, StudyGoal } from '../types';
+import { focusSoundEngine } from '../utils/audio';
 
 interface StudySectionProps {
   studySessions: StudySession[];
@@ -52,6 +54,10 @@ export const StudySection: React.FC<StudySectionProps> = ({
   const [sessionTime, setSessionTime] = useState(1500); // Default study focus is 25 minutes
   const [presetTime, setPresetTime] = useState(1500); // Remembers preconfigured time
   const [newGoalInput, setNewGoalInput] = useState('');
+  
+  // Ambient binaural focus synthesizer state
+  const [soundPreset, setSoundPreset] = useState<'none' | 'gamma' | 'theta' | 'waves' | 'brown'>('none');
+  const [soundVolume, setSoundVolume] = useState(0.15);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -60,6 +66,21 @@ export const StudySection: React.FC<StudySectionProps> = ({
       setSelectedSubject(studySubjects[0]);
     }
   }, [studySubjects, selectedSubject]);
+
+  useEffect(() => {
+    if (isActive && soundPreset !== 'none') {
+      focusSoundEngine.start(soundPreset, soundVolume);
+    } else {
+      focusSoundEngine.stop();
+    }
+    return () => {
+      focusSoundEngine.stop();
+    };
+  }, [isActive, soundPreset]);
+
+  useEffect(() => {
+    focusSoundEngine.setVolume(soundVolume);
+  }, [soundVolume]);
 
   useEffect(() => {
     if (isActive) {
@@ -263,6 +284,60 @@ export const StudySection: React.FC<StudySectionProps> = ({
             >
               Log Chunks
             </button>
+          </div>
+
+          {/* Ambient Synthesizer Controls */}
+          <div className="w-full bg-zinc-950/40 border border-zinc-900/40 rounded-xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Volume2 className="w-4 h-4 text-pink-500 text-glow-pink" />
+                Cognitive Focus Synthesizer
+              </span>
+              {isActive && soundPreset !== 'none' && (
+                <span className="text-[9px] font-mono font-bold text-pink-400 animate-pulse uppercase tracking-wider bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
+                  Synthesizing Active
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-5 gap-1.5">
+              {(
+                [
+                  { id: 'none', label: 'Mute' },
+                  { id: 'gamma', label: 'Gamma' },
+                  { id: 'theta', label: 'Theta' },
+                  { id: 'waves', label: 'Ocean' },
+                  { id: 'brown', label: 'Brown' },
+                ] as const
+              ).map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => setSoundPreset(preset.id)}
+                  className={`px-1 py-2 rounded-lg text-[9px] font-bold transition-all uppercase tracking-wider border leading-none ${
+                    soundPreset === preset.id
+                      ? 'bg-pink-500/10 text-pink-400 border-pink-500/40 shadow-[0_0_8px_rgba(236,72,153,0.15)]'
+                      : 'bg-zinc-950/20 border-zinc-850 text-zinc-500 hover:text-zinc-300 hover:border-zinc-750'
+                  }`}
+                  title={`${preset.label} wave frequency preset`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Intensity</span>
+              <input
+                type="range"
+                min="0.01"
+                max="0.4"
+                step="0.01"
+                value={soundVolume}
+                onChange={(e) => setSoundVolume(parseFloat(e.target.value))}
+                className="flex-1 accent-pink-500 cursor-pointer h-1 bg-zinc-900 rounded"
+              />
+              <span className="text-[9px] font-mono font-bold text-zinc-400">{Math.round(soundVolume * 250)}%</span>
+            </div>
           </div>
 
           {/* Subject selection */}

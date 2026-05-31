@@ -14,9 +14,13 @@ import {
   ShieldAlert, 
   Save, 
   Info,
-  Sliders
+  Sliders,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { AppState } from '../types';
+import { formatLocalDate } from '../utils/date';
+import { generateSecureHash } from '../utils/hash';
 
 interface SettingsSectionProps {
   state: AppState;
@@ -32,7 +36,9 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   onResetAllData
 }) => {
   const [editedName, setEditedName] = useState(state.settings.userName);
-  const [editedGoal, setEditedGoal] = useState(state.settings.focusSound || '120'); // Study goal minutes
+  const [editedGoal, setEditedGoal] = useState(String(state.settings.dailyStudyGoalMinutes || 120)); // Study goal minutes
+  const [passcode, setPasscode] = useState('');
+  const [isPasscodeRequired, setIsPasscodeRequired] = useState(state.settings.isPasscodeRequired || false);
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +55,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `betterme_growth_ledger_${new Date().toISOString().split('T')[0]}.json`);
+    downloadAnchor.setAttribute("download", `betterme_growth_ledger_${formatLocalDate()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -182,6 +188,93 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
                   className="hidden"
                 />
               </label>
+            </div>
+          </div>
+
+          {/* Lock Screen Settings */}
+          <div className="glass-panel rounded-2xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-zinc-200 font-display flex items-center gap-2 border-b border-zinc-900 pb-3">
+              <Lock className="w-4 h-4 text-pink-400" />
+              App Protection (PWD)
+            </h3>
+            
+            <p className="text-zinc-500 text-xs leading-relaxed">
+              Enable a security passcode screen to protect your atomic growth progress, journals, and health ledger.
+            </p>
+
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center justify-between bg-zinc-950/40 p-3 rounded-xl border border-zinc-900">
+                <span className="text-xs font-semibold text-zinc-300">Lock on Startup</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextRequired = !isPasscodeRequired;
+                    setIsPasscodeRequired(nextRequired);
+                    if (nextRequired && !state.settings.passcodeHash) {
+                      alert("Please set and save a passcode value first below.");
+                      setIsPasscodeRequired(false);
+                      return;
+                    }
+                    onUpdateSettings({
+                      ...state.settings,
+                      isPasscodeRequired: nextRequired
+                    });
+                  }}
+                  className={`w-11 h-6 rounded-full p-1 transition-colors duration-300 relative ${
+                    isPasscodeRequired ? 'bg-pink-500' : 'bg-zinc-800'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ${
+                    isPasscodeRequired ? 'transform translate-x-5' : ''
+                  }`} />
+                </button>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">
+                  Change Passcode (PIN digits only)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    maxLength={8}
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    value={passcode}
+                    onChange={(e) => setPasscode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="e.g. 1234"
+                    className="bg-zinc-950/80 border border-zinc-900/60 rounded-xl px-3 py-2 text-zinc-200 text-xs focus:border-pink-500 focus:outline-none flex-1 font-mono tracking-widest"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!passcode) {
+                        alert("Please type a secure PIN code.");
+                        return;
+                      }
+                      
+                      const hashHex = await generateSecureHash(passcode);
+                      
+                      onUpdateSettings({
+                        ...state.settings,
+                        passcodeHash: hashHex,
+                        isPasscodeRequired: true
+                      });
+                      setIsPasscodeRequired(true);
+                      setPasscode('');
+                      alert("Vault passcode successfully encrypted and deployed.");
+                    }}
+                    className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-pink-400 font-bold border border-zinc-800 rounded-xl text-xs uppercase"
+                  >
+                    Save PIN
+                  </button>
+                </div>
+                {state.settings.passcodeHash && (
+                  <p className="text-[9px] text-emerald-400 font-bold uppercase mt-1.5 flex items-center gap-1">
+                     ✔ Encrypted passcode active
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 

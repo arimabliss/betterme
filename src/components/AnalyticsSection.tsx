@@ -17,6 +17,7 @@ import {
   Activity
 } from 'lucide-react';
 import { AppState } from '../types';
+import { formatLocalDate } from '../utils/date';
 
 interface AnalyticsSectionProps {
   state: AppState;
@@ -33,7 +34,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ state, today
     for (let i = 6; i >= 0; i--) {
       const c = new Date(d);
       c.setDate(d.getDate() - i);
-      const cStr = c.toISOString().split('T')[0];
+      const cStr = formatLocalDate(c);
       
       // Calculate discipline score for that day
       let dayScore = 0;

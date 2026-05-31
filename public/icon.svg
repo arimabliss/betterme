@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ec4899" />
+      <stop offset="50%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="15" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background Card -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <!-- Outer glowing rings -->
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#ffffff" stroke-width="6" stroke-opacity="0.2" />
+  <circle cx="256" cy="256" r="110" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="10, 15" stroke-opacity="0.3" />
+  
+  <!-- Minimalist Self-Conquest Compass Needle -->
+  <g filter="url(#glow)">
+    <!-- North Pointer (Bright white glow) -->
+    <path d="M256,120 L285,256 L256,280 Z" fill="#ffffff" />
+    <!-- South Pointer (Slightly shaded) -->
+    <path d="M256,392 L227,256 L256,280 Z" fill="#f1f5f9" fill-opacity="0.8" />
+    <!-- East Pointer -->
+    <path d="M392,256 L256,285 L280,256 Z" fill="#fdf2f8" fill-opacity="0.9" />
+    <!-- West Pointer -->
+    <path d="M120,256 L256,227 L280,256 Z" fill="#e0e7ff" fill-opacity="0.7" />
+  </g>
+  
+  <!-- Center Core -->
+  <circle cx="256" cy="256" r="15" fill="#030308" stroke="#ffffff" stroke-width="4" />
+</svg>
