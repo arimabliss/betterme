@@ -1,0 +1,6 @@
+{
+  "name": "BetterMe Growth Tracker",
+  "description": "A high-performance personal discipline, habit, study, gym, and calendar planner running in a midnight glass-morphic interface.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
